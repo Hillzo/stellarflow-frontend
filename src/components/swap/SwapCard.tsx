@@ -12,6 +12,7 @@ import { PathVisualizer } from "./PathVisualizer";
 import { GasEstimateBadge } from "./GasEstimateBadge";
 import { TokenSelectorModal } from "./TokenSelectorModal";
 import { SlippageSettingsModal } from "./SlippageSettingsModal";
+import { triggerHaptic } from "@/lib/haptics";
 import type { TokenOption } from "./SwapForm";
 
 interface SwapCardProps {
@@ -170,6 +171,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ tokens, onSwapSuccess }) => 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    triggerHaptic("lightTap");
     if (!isConnected) {
       await submitButtonState.action?.();
       return;
@@ -184,11 +186,13 @@ export const SwapCard: React.FC<SwapCardProps> = ({ tokens, onSwapSuccess }) => 
         minOutput: minAmountOut !== null ? minAmountOut.toString() : toAmount,
       });
 
+      triggerHaptic("successChime");
       setFromAmount("");
       setToAmount("");
       fetchBalances();
       onSwapSuccess?.();
     } catch (err) {
+      triggerHaptic("errorAlert");
       console.error("Swap execution failed:", err);
     }
   };
