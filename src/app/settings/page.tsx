@@ -19,6 +19,7 @@ import { WalletNonceResync } from '@/components/wallet/WalletNonceResync';
 import { useZKProofLoader } from '@/components/zk/useZKProofLoader';
 import { useThemeContext, type Theme } from '@/context/ThemeContext';
 import { CustomTokenSettings } from '@/components/tokens/CustomTokenSettings';
+import { NotificationPreferencesDrawer } from '@/app/components/NotificationPreferencesDrawer';
 
 interface Settings {
   emailReports: boolean;
@@ -41,6 +42,7 @@ const TOGGLE_STYLES = {
 
 export default function SettingsPage() {
   const [showKey, setShowKey] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [screenLockModalOpen, setScreenLockModalOpen] = useState(false);
   const {
     isEnabled: soundEffectsEnabled,
