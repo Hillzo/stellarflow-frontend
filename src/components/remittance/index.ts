@@ -37,3 +37,12 @@ export { CorridorStatusMap, DEFAULT_CORRIDORS, type CorridorStatusMapProps, type
 
 export { RedeemNoteForm, type RedeemNoteFormProps } from "./RedeemNoteForm";
 export { ShieldedDepositModal, type ShieldedDepositModalProps } from "./ShieldedDepositModal";
+export {
+  FiatRampDrawer,
+  type FiatRampDrawerProps,
+  type PaymentMethod,
+  type FiatRampProvider,
+  type FiatRampProviderOption,
+  FIAT_RAMP_PROVIDERS,
+  PAYMENT_METHODS,
+} from "./FiatRampDrawer";
