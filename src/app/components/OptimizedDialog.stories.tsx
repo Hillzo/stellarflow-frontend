@@ -64,7 +64,13 @@ const InteractiveTemplate = (args: Omit<OptimizedDialogProps, "isOpen" | "onClos
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div>
-      <button type="button" onClick={() => setIsOpen(true)}>Open Dialog</button>
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="rounded bg-blue-600 px-4 py-2 text-white"
+      >
+        Open Dialog
+      </button>
       <OptimizedDialog {...args} isOpen={isOpen} onClose={() => setIsOpen(false)}>
         {args.children}
       </OptimizedDialog>

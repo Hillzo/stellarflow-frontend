@@ -135,8 +135,8 @@ export default function TransactionHistoryTable() {
         <div className="flex items-center gap-3">
           <select
             value={typeFilter}
-            onChange={(e) =>
-              setTypeFilter(e.target.value as "all" | TransactionType)
+            onChange={(event) =>
+              setTypeFilter(event.target.value as "all" | TransactionType)
             }
             className="rounded-md border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-300 focus:border-blue-500 focus:outline-none"
           >

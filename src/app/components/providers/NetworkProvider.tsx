@@ -13,27 +13,32 @@ import React, {
 export type NetworkTarget = "testnet" | "mainnet";
 
 export interface NetworkConfig {
+  /** Human-readable network label. */
   label: string;
+  network: NetworkTarget;
+  /** Passphrase transactions are signed against. */
+  networkPassphrase: string;
   horizonUrl: string;
   sorobanUrl: string;
   sorobanRpcUrl: string;
-  networkPassphrase: string;
 }
 
 export const NETWORK_CONFIGS: Record<NetworkTarget, NetworkConfig> = {
   testnet: {
     label: "Testnet",
+    network: "testnet",
+    networkPassphrase: "Test SDF Network ; September 2015",
     horizonUrl: "https://horizon-testnet.stellar.org",
     sorobanUrl: "https://soroban-testnet.stellar.org",
     sorobanRpcUrl: "https://soroban-testnet.stellar.org",
-    networkPassphrase: "Test SDF Network ; September 2015",
   },
   mainnet: {
-    label: "Mainnet",
+    label: "Public",
+    network: "mainnet",
+    networkPassphrase: "Public Global Stellar Network ; September 2015",
     horizonUrl: "https://horizon.stellar.org",
     sorobanUrl: "https://soroban-mainnet.stellar.org",
     sorobanRpcUrl: "https://soroban-mainnet.stellar.org",
-    networkPassphrase: "Public Global Stellar Network ; September 2015",
   },
 };
 
@@ -42,6 +47,7 @@ export interface NetworkContextType {
   horizonUrl: string;
   sorobanUrl: string;
   customHorizonUrl: string;
+  /** Active network config (honours a custom Horizon endpoint when set). */
   config: NetworkConfig;
   clients: { horizon: Horizon.Server };
 }

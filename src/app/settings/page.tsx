@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Icon from '@/components/icons/Icon';
 import { ICON_IDS } from '@/components/icons/iconIds';
 import { useDebounce } from '../hooks/useDebounce';
@@ -19,7 +19,9 @@ import { WalletNonceResync } from '@/components/wallet/WalletNonceResync';
 import { useZKProofLoader } from '@/components/zk/useZKProofLoader';
 import { useThemeContext, type Theme } from '@/context/ThemeContext';
 import { CustomTokenSettings } from '@/components/tokens/CustomTokenSettings';
-import { NotificationPreferencesDrawer } from '@/app/components/NotificationPreferencesDrawer';
+import { NotificationPreferencesPanel } from '@/components/settings/NotificationPreferencesPanel';
+import { KeyboardShortcutsSettings } from '@/components/keyboard-shortcuts/KeyboardShortcutsSettings';
+import { NetworkProvider, useNetwork, useNetworkActions } from '@/app/components/providers/NetworkProvider';
 
 interface Settings {
   emailReports: boolean;
@@ -40,10 +42,44 @@ const TOGGLE_STYLES = {
   },
 };
 
-export default function SettingsPage() {
+function SettingsContent() {
   const [showKey, setShowKey] = useState(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [screenLockModalOpen, setScreenLockModalOpen] = useState(false);
+
+  // Custom Horizon endpoint form
+  const { horizonUrl, customHorizonUrl } = useNetwork();
+  const { setCustomHorizonEndpoint, resetToDefaultEndpoint } = useNetworkActions();
+  const [inputUrl, setInputUrl] = useState('');
+  const [isValidating, setIsValidating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const handleSaveCustomRpc = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError(null);
+    setSuccessMessage(null);
+    setIsValidating(true);
+
+    try {
+      const saved = await setCustomHorizonEndpoint(inputUrl);
+      if (saved) {
+        setSuccessMessage(
+          inputUrl.trim()
+            ? 'Custom Horizon endpoint saved.'
+            : 'Switched back to the default Horizon endpoint.',
+        );
+        setInputUrl('');
+      } else {
+        setError('Could not reach that endpoint — kept the current one.');
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to save the endpoint.',
+      );
+    } finally {
+      setIsValidating(false);
+    }
+  };
   const {
     isEnabled: soundEffectsEnabled,
     toggle: toggleSoundEffects,
@@ -222,6 +258,7 @@ export default function SettingsPage() {
           </div>
         </section>
 
+
         {/* Device Interactions & Haptics */}
         <section className="bg-[#161b22] border border-gray-800 rounded-xl p-6">
           <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
@@ -247,37 +284,30 @@ export default function SettingsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => testHapticLightTap(true)}
-                    className="px-3 py-1.5 text-xs bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg border border-gray-700 transition-colors font-medium"
-                  >
-                    Light Tap (10ms)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => testHapticSuccess(true)}
-                    className="px-3 py-1.5 text-xs bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 rounded-lg border border-emerald-500/30 transition-colors font-medium"
-                  >
-                    Success Chime
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => testHapticError(true)}
-                    className="px-3 py-1.5 text-xs bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg border border-red-500/30 transition-colors font-medium"
-                  >
-                    Error Alert
-                  </button>
+                  <button type="button" onClick={() => testHapticLightTap(true)} className="px-3 py-1.5 text-xs bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg border border-gray-700 transition-colors font-medium">Light Tap (10ms)</button>
+                  <button type="button" onClick={() => testHapticSuccess(true)} className="px-3 py-1.5 text-xs bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 rounded-lg border border-emerald-500/30 transition-colors font-medium">Success Chime</button>
+                  <button type="button" onClick={() => testHapticError(true)} className="px-3 py-1.5 text-xs bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg border border-red-700/30 transition-colors font-medium">Error Alert</button>
                 </div>
               </div>
             )}
           </div>
         </section>
 
+        {/* Push Notifications Settings */}
+        <section className="bg-[#161b22] border border-gray-800 rounded-xl p-6">
+          <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
+            <Icon id={ICON_IDS.bell} size={20} className="text-blue-400" />
+            Push Notifications
+          </h2>
+          <NotificationPreferencesPanel compact />
+        </section>
+
         {/* Auto-Lock Security Settings */}
         <AutoLockSettings />
 
         <CustomTokenSettings />
+
+        <KeyboardShortcutsSettings />
 
         <section className="bg-[#161b22] border border-gray-800 rounded-xl p-6">
           <div className="flex justify-between items-center mb-6">
@@ -308,14 +338,35 @@ export default function SettingsPage() {
             </div>
           </div>
         </section>
-      </div>
 
-      <NotificationPreferencesDrawer 
-        isOpen={isDrawerOpen} 
-        onClose={() => setIsDrawerOpen(false)} 
-      />
+        <section className="bg-[#161b22] border border-gray-800 rounded-xl p-6">
+          <h2 className="text-lg font-semibold mb-6">Network Endpoint</h2>
+          <form onSubmit={handleSaveCustomRpc} className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1">Custom Horizon URL</label>
+              <div className="flex gap-2">
+                <input type="url" value={inputUrl} onChange={(e) => setInputUrl(e.target.value)} placeholder="https://horizon-custom.example.com" className="flex-1 bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <button type="submit" disabled={isValidating} className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+                  {isValidating && <span className="h-3 w-3 rounded-full border border-white border-t-transparent animate-spin" />}
+                  Validate &amp; Save
+                </button>
+              </div>
+            </div>
+            {error && <div className="flex items-center gap-2 text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-lg" role="alert"><Icon id={ICON_IDS.alertTriangle} size={14} className="shrink-0" /><span>{error}</span></div>}
+            {successMessage && <div className="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg"><Icon id={ICON_IDS.checkCircle || ICON_IDS.alertTriangle} size={14} className="shrink-0" /><span>{successMessage}</span></div>}
+            <div className="pt-2 flex items-center justify-between text-xs text-gray-400">
+              <span>Active Horizon Endpoint: <strong className="text-gray-200 font-mono">{horizonUrl}</strong></span>
+              {customHorizonUrl && <button type="button" onClick={() => { resetToDefaultEndpoint(); setInputUrl(""); }} className="text-red-400 hover:underline">Reset to Default</button>}
+            </div>
+          </form>
+        </section>
+      </div>
     </div>
   );
+}
+
+export default function SettingsPage() {
+  return <NetworkProvider><SettingsContent /></NetworkProvider>;
 }
 
 function ToggleItem({ icon, title, description, enabled, onToggle, onConfigure }: { icon: React.ReactNode, title: string, description: string, enabled: boolean, onToggle: () => void, onConfigure?: () => void }) {
